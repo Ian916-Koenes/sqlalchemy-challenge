@@ -55,10 +55,19 @@ def precipitation():
     all_precipitations = {}
     for date, prcp in results:
         all_precipitations[date] = prcp
-       
-
 
     return jsonify(all_precipitations)
+
+
+@app.route("/api/v1.0/stations")
+def stations():
+    session = Session(engine)
+    stations = session.query(Station.station).all()
+
+    session.close()
+
+    return jsonify(stations)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
