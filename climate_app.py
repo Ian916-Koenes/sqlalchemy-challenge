@@ -37,8 +37,8 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start><br/>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/start<br/>"
+        f"/api/v1.0/start/end"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -67,6 +67,42 @@ def stations():
     session.close()
 
     return jsonify(stations)
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    session = Session(engine)
+    one_year = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
+    stations = session.query(Measurement.tobs)
+    
+    main_stations = stations.filter(Measurement.station == 'USC00519281').filter(Measurement.date >= one_year).order_by(Measurement.date).all()
+
+    session.close()
+
+    return jsonify(main_stations)
+
+@app.route("/api/v1.0/<start>")
+def calc_temps(start):
+    
+    session = Session(engine)
+
+    start_date=session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start).all()
+
+    session.close()
+
+    return jsonify(start_date)
+
+
+@app.route("/api/v1.0/<start>/<end>")
+def calc_temps2(start, end):
+
+    session = Session(engine)
+
+    end_date = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+
+    session.close()
+
+    return jsonify(end_date)
 
 
 if __name__ == '__main__':
